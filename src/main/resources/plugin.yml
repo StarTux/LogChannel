@@ -3,6 +3,7 @@ description: Log server log messages (join, leave, death) to a Herochat channel
 author: StarTux
 version: 0.2
 main: com.winthier.logchannel.LogChannelPlugin
+depend: [ Vault ]
 commands:
   LogChannel:
     aliases: [ logchan ]

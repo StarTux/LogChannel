@@ -3,12 +3,19 @@ package com.winthier.logchannel;
 import com.dthielke.herochat.Channel;
 import com.dthielke.herochat.Chatter;
 import com.dthielke.herochat.Herochat;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,13 +26,15 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.Location;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 
-public class LogChannelPlugin extends JavaPlugin implements Listener {
+public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMessageListener {
     private static final String LOG_PERMISSION = "logchannel.log";
     private String deathMessage, joinMessage, leaveMessage;
     private boolean mute;
+    private Permission permission = null;
 
     @Override
     public void onEnable() {
@@ -33,6 +42,27 @@ public class LogChannelPlugin extends JavaPlugin implements Listener {
         reloadConfig();
         loadConfiguration();
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getMessenger().registerIncomingPluginChannel(this, "LogChannel", this);
+    }
+
+    private Permission getPermission() {
+        if (permission == null) {
+            RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(Permission.class);
+            if (permissionProvider != null) permission = permissionProvider.getProvider();
+            if (permission == null) {
+                getLogger().warning("Failed to setup Vault Permission");
+            }
+        }
+        return permission;
+    }
+
+    private boolean hasPermission(UUID uuid, String permName) {
+        Player player = getServer().getPlayer(uuid);
+        if (player != null) return player.hasPermission(permName);
+        Permission permission = getPermission();
+        if (permission == null) return false;
+        OfflinePlayer off = getServer().getOfflinePlayer(uuid);
+        return permission.playerHas((String)null, off, permName);
     }
 
     @Override
@@ -48,6 +78,10 @@ public class LogChannelPlugin extends JavaPlugin implements Listener {
             StringBuilder sb = new StringBuilder(args[1]);
             for (int i = 2; i < args.length; ++i) sb.append(" ").append(args[i]);
             logToChannel(null, ChatColor.translateAlternateColorCodes('&', sb.toString()));
+            return true;
+        } else if ("Mute".equalsIgnoreCase(args[0]) && args.length == 1) {
+            mute = !mute;
+            sender.sendMessage("LogChannel " + (mute ? "muted" : "unmuted"));
             return true;
         }
         return false;
@@ -67,7 +101,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener {
         getLogger().info(msg);
         if (mute || !event.getEntity().hasPermission("logchannel.log")) return;
         if (msg != null) {
-            msg = deathMessage.replaceAll(Pattern.quote("{message}"), Matcher.quoteReplacement(msg));
+            msg = deathMessage.replace("{message}", msg);
             logToChannel(event.getEntity(), msg, event.getEntity().getKiller() != null);
         }
     }
@@ -76,7 +110,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.setJoinMessage(null);
         // if (mute || !event.getPlayer().hasPermission("logchannel.log")) return;
-        // String msg = joinMessage.replaceAll(Pattern.quote("{player}"), Matcher.quoteReplacement(event.getPlayer().getName()));
+        // String msg = joinMessage.replace("{player}", event.getPlayer().getName());
         // logToChannel(event.getPlayer(), msg);
     }
 
@@ -84,7 +118,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         event.setQuitMessage(null);
         // if (mute || !event.getPlayer().hasPermission("logchannel.log")) return;
-        // String msg = leaveMessage.replaceAll(Pattern.quote("{player}"), Matcher.quoteReplacement(event.getPlayer().getName()));
+        // String msg = leaveMessage.replace("{player}", event.getPlayer().getName());
         // logToChannel(event.getPlayer(), msg);
     }
 
@@ -115,6 +149,34 @@ public class LogChannelPlugin extends JavaPlugin implements Listener {
                 if (loc1.distanceSquared(loc2) > 128.0*128.0) continue;
             }
             player.sendMessage(message);
+        }
+    }
+
+    @Override
+    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+        if (mute) return;
+        if (!channel.equals("LogChannel")) return;
+        ByteArrayInputStream bis = new ByteArrayInputStream(message);
+        DataInputStream in = new DataInputStream(bis);
+        try {
+            String msg = in.readUTF();
+            UUID uuid = UUID.fromString(in.readUTF());
+            String name = in.readUTF();
+            // System.out.println("Received message "+msg+" "+uuid+" "+name+": "+hasPermission(uuid, "logchannel.log"));
+            if (!hasPermission(uuid, "logchannel.log")) return;
+            final String output;
+            if (msg.equals("Join")) {
+                output = joinMessage.replace("{player}", name);
+            } else if (msg.equals("Leave")) {
+                output = leaveMessage.replace("{player}", name);
+            } else {
+                getLogger().warning("Unknown message type: " + msg);
+                return;
+            }
+            logToChannel(null, output, false);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            return;
         }
     }
 }

@@ -1,5 +1,5 @@
-JoinMessage: '&e{player} joined the game'
-LeaveMessage: '&e{player} left the game'
-DeathMessage: '&e{message}'
-ChannelName: log
+JoinMessage: '&8{player} joined'
+LeaveMessage: '&8{player} left'
+DeathMessage: '&8{message}'
+ChannelName: Information
 Mute: false
