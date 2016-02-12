@@ -1,0 +1,5 @@
+JoinMessage: '&e{player} joined the game'
+LeaveMessage: '&e{player} left the game'
+DeathMessage: '&e{message}'
+ChannelName: log
+Mute: false

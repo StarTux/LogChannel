@@ -1,0 +1,20 @@
+name: LogChannel
+description: Log server log messages (join, leave, death) to a Herochat channel
+author: StarTux
+version: 0.2
+main: com.winthier.logchannel.LogChannelPlugin
+commands:
+  LogChannel:
+    aliases: [ logchan ]
+    description: Admin interface
+    permission: logchannel.logchannel
+    usage: |-
+      /LogChannel Reload - Reload the configuration.
+      /LogChannel Log <Message> - Display an arbitrary message.
+permissions:
+  logchannel.logchannel:
+    description: use the /logchannel command
+    default: op
+  logchannel.log:
+    description: have your actions logged
+    default: false
