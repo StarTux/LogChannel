@@ -33,7 +33,7 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMessageListener {
     private static final String LOG_PERMISSION = "logchannel.log";
     private String deathMessage, joinMessage, leaveMessage;
-    private boolean mute;
+    private boolean mute = false, muteDeaths = false;
     private Permission permission = null;
 
     @Override
@@ -91,7 +91,8 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         deathMessage = ChatColor.translateAlternateColorCodes('&', getConfig().getString("DeathMessage"));
         joinMessage = ChatColor.translateAlternateColorCodes('&', getConfig().getString("JoinMessage"));
         leaveMessage = ChatColor.translateAlternateColorCodes('&', getConfig().getString("LeaveMessage"));
-        mute = getConfig().getBoolean("Mute");
+        mute = getConfig().getBoolean("Mute", mute);
+        muteDeaths = getConfig().getBoolean("MuteDeaths", muteDeaths);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -99,7 +100,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         String msg = ChatColor.stripColor(event.getDeathMessage());
         event.setDeathMessage(null);
         getLogger().info(msg);
-        if (mute || !event.getEntity().hasPermission("logchannel.log")) return;
+        if (mute || muteDeaths || !event.getEntity().hasPermission("logchannel.log")) return;
         if (msg != null) {
             msg = deathMessage.replace("{message}", msg);
             logToChannel(event.getEntity(), msg, event.getEntity().getKiller() != null);

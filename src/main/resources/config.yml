@@ -3,3 +3,4 @@ LeaveMessage: '&8{player} left'
 DeathMessage: '&8{message}'
 ChannelName: Information
 Mute: false
+MuteDeaths: false
