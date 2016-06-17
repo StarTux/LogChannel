@@ -1,8 +1,7 @@
 package com.winthier.logchannel;
 
-import com.dthielke.herochat.Channel;
-import com.dthielke.herochat.Chatter;
-import com.dthielke.herochat.Herochat;
+import com.winthier.chat.ChatPlugin;
+import com.winthier.chat.channel.Channel;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -134,15 +133,14 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
 
     public void logToChannel(Player cause, String message, boolean local) {
         String channelName = getConfig().getString("ChannelName");
-        Channel channel = Herochat.getChannelManager().getChannel(channelName);
+        Channel channel = ChatPlugin.getInstance().findChannel(channelName);
         if (channel == null) {
             getLogger().warning("Channel not found: " + channelName);
             return;
         }
-        for (Chatter chatter : channel.getMembers()) {
-            Player player = chatter.getPlayer();
+        for (Player player : channel.getLocalMembers()) {
             if (player == null) continue;
-            if (cause != null && chatter.getIgnores().contains(cause.getName().toLowerCase())) continue;
+            if (cause != null && ChatPlugin.getInstance().doesIgnore(player.getUniqueId(), cause.getUniqueId())) continue;
             if (local) {
                 Location loc1 = cause.getLocation();
                 Location loc2 = player.getLocation();

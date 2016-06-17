@@ -43,14 +43,13 @@
       <version>1.14.8</version>
       <scope>provided</scope>
     </dependency>
-    <!-- Herochat -->
+    <!-- Chat -->
     <dependency>
-      <groupId>org.dthielke</groupId>
-      <artifactId>HeroChat</artifactId>
-      <version>5.6.7</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/lib/Herochat.jar</systemPath>
-    </dependency>    
+      <groupId>com.winthier.chat</groupId>
+      <artifactId>chat</artifactId>
+      <version>0.1</version>
+      <scope>provided</scope>
+    </dependency>
     <!-- Vault -->
     <dependency>
       <groupId>net.milkbowl.vault</groupId>
