@@ -94,7 +94,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         muteDeaths = getConfig().getBoolean("MuteDeaths", muteDeaths);
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
         String msg = ChatColor.stripColor(event.getDeathMessage());
         event.setDeathMessage(null);
@@ -102,11 +102,11 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         if (mute || muteDeaths || !event.getEntity().hasPermission("logchannel.log")) return;
         if (msg != null) {
             msg = deathMessage.replace("{message}", msg);
-            logToChannel(event.getEntity(), msg, event.getEntity().getKiller() != null);
+            logToChannel(event.getEntity(), msg);
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.setJoinMessage(null);
         // if (mute || !event.getPlayer().hasPermission("logchannel.log")) return;
@@ -114,7 +114,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         // logToChannel(event.getPlayer(), msg);
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerQuit(PlayerQuitEvent event) {
         event.setQuitMessage(null);
         // if (mute || !event.getPlayer().hasPermission("logchannel.log")) return;
@@ -122,7 +122,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         // logToChannel(event.getPlayer(), msg);
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onPlayerKick(PlayerKickEvent event) {
         event.setLeaveMessage(null);
     }
