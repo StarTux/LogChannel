@@ -102,7 +102,7 @@ public class LogChannelPlugin extends JavaPlugin implements Listener, PluginMess
         if (mute || muteDeaths || !event.getEntity().hasPermission("logchannel.log")) return;
         if (msg != null) {
             msg = deathMessage.replace("{message}", msg);
-            logToChannel(event.getEntity(), msg);
+            logToChannel(event.getEntity(), msg, event.getEntity().getKiller() != null);
         }
     }
 
